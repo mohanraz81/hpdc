@@ -1,0 +1,375 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description:  This template deploys a VPC, with a pair of public and private subnets spread
+  across two Availability Zones. It deploys an internet gateway, with a public route for the 
+  public subnets. And private route for the private subnets. 
+
+
+Parameters:
+  UserEnvironmentName:
+    Description: An environment name that is prefixed to resource names
+    Type: String
+    Default: VPC
+
+  VpcCIDR:
+    Description: Specify an IPv4 CIDR block for the VPC. The smallest CIDR block you can specify is /28, and the largest is /16. 
+    Type: String
+    Default: 10.0.0.0/16
+
+  PublicSubnet1CIDR:
+    Description: Specify a CIDR block for the public subnet in the first Availability Zone, which is a subset of the VPC CIDR.
+    Type: String
+    Default: 10.0.0.0/24
+
+  PublicSubnet2CIDR:
+    Description: Specify a CIDR block for the public subnet in the second Availability Zone, which is a subset of the VPC CIDR.
+    Type: String
+    Default: 10.0.1.0/24
+
+  PrivateSubnet1CIDR:
+    Description: Specify a CIDR block for the private subnet in the first Availability Zone, which is a subset of the VPC CIDR.
+    Type: String
+    Default: 10.0.2.0/24
+
+  PrivateSubnet2CIDR:
+    Description: Specify a CIDR block for the private subnet in the second Availability Zone, which is a subset of the VPC CIDR.
+    Type: String
+    Default: 10.0.3.0/24
+  
+  InternetGatewayRoute:
+    Description: Destination CIDR for public route.
+    Type: String
+    Default: 0.0.0.0/0
+  
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Metadata:
+      Description: A VPC resource will be deployed.
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Ref UserEnvironmentName
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Metadata:
+      Description: An Internet Gateway resource which will enable access to the internet for your VPC.
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref UserEnvironmentName
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Metadata:
+      Description: Internet Gateway attachement to your VPC.
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Metadata:
+      Description: A subnet in 1st Availability zone which we will route to IGW for making it public.
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: !Ref PublicSubnet1CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${UserEnvironmentName} Public Subnet (AZ1)
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Metadata:
+      Description: A subnet in 2nd Availability zone which we will route to IGW for making it public.
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      CidrBlock: !Ref PublicSubnet2CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${UserEnvironmentName} Public Subnet (AZ2)
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Metadata:
+      Description: A subnet in 1st Availability zone which will be routed to private route.
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      CidrBlock: !Ref PrivateSubnet1CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${UserEnvironmentName} Private Subnet (AZ1)
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Metadata:
+      Description: A subnet in 2nd Availability zone which will be routed to private route.
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      CidrBlock: !Ref PrivateSubnet2CIDR
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${UserEnvironmentName} Private Subnet (AZ2)
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Metadata:
+      Description: Route table for public subnets.
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${UserEnvironmentName} Public Routes.
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Metadata:
+      Description: Route for public subntes where it's traffic is directed.
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 
+        Ref: InternetGatewayRoute
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Metadata:
+      Description: Route table attachement in public subnet of 1st Availability zone. 
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Metadata:
+      Description: Route table attachement in public subnet of 2nd Availability zone. 
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+  
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Metadata:
+      Description: Route table for private subnets.
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${UserEnvironmentName} Private Routes
+          
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Metadata:
+      Description: Route table attachement in private subnet of 1st Availability zone. 
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTable
+      SubnetId: 
+        Ref: PrivateSubnet1
+  
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Metadata:
+      Description: Rote table attachement in private subnet of 2nd Availability zone. 
+    Properties:
+      RouteTableId: 
+        Ref: PrivateRouteTable
+      SubnetId: 
+        Ref: PrivateSubnet2
+  NatGatewayEIP:
+    Type: AWS::EC2::EIP
+    Metadata:
+      Description: This will deploy a elastic ip.
+    Properties:
+      Domain: vpc
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Metadata:
+      Description: This Resource will deploy a NatGateway so that private subntes can be exposed to internet.
+    Properties:
+      AllocationId: !GetAtt NatGatewayEIP.AllocationId
+      SubnetId: 
+        Ref: PrivateSubnet1
+
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Metadata:
+      Description: Route for private subntes where it's traffic is directed.
+    Properties:
+      RouteTableId: 
+        Ref: PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+      
+  VpcDynamodbEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Metadata:
+      Description: This resource will create a Dynamodb endpoint in private network.
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - 'dynamodb:*'
+            Resource:
+              - '*'
+      RouteTableIds:
+        -
+          Ref: PrivateRouteTable
+      ServiceName: 
+        'Fn::Sub': 'com.amazonaws.${AWS::Region}.dynamodb'
+      VpcId:
+        Ref: VPC
+  VpcS3Endpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Metadata:
+      Description: This resource will create a S3 endpoint in private network.
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - 's3:*'
+            Resource:
+              - '*'
+      RouteTableIds:
+        -
+          Ref: PrivateRouteTable
+      ServiceName:
+        'Fn::Sub': 'com.amazonaws.${AWS::Region}.s3'
+      VpcId:
+        Ref: VPC
+Outputs:
+  VPCID:
+    Description: Vpc Id of the craeted VPC.
+    Value: !Ref VPC
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-VPCID"
+  
+  VPCCIDR:
+    Description: A reference to VPC CIDR.
+    Value: !GetAtt VPC.CidrBlock
+
+  PublicSubnets:
+    Description: A list of the public subnets.
+    Value: !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2 ]]
+
+  PrivateSubnets:
+    Description: A list of the private subnets.
+    Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2 ]]
+
+  PublicSubnet1ID:
+    Description: Subnet Id of the public subnet in the 1st Availability Zone.
+    Value: !Ref PublicSubnet1
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-PublicSubnet1ID"
+
+  PublicSubnet2ID:
+    Description: Subnet Id of the public subnet in the 2nd Availability Zone.
+    Value: !Ref PublicSubnet2
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-PublicSubnet2ID"
+
+  PrivateSubnet1ID:
+    Description: Subnet Id of the private subnet in the 1st Availability Zone.
+    Value: !Ref PrivateSubnet1
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-PrivateSubnet1ID"
+
+  PrivateSubnet2ID:
+    Description: Subnet Id of the private subnet in the 2nd Availability Zone.
+    Value: !Ref PrivateSubnet2
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-PrivateSubnet2ID"
+  
+  PublicRouteTableId:
+    Description: Route Table Id of public subnets.
+    Value: !Ref PublicRouteTable
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-PublicRouteTableId"
+  
+  PrivateRouteTableId:
+    Description: Route Table Id of private subnets.
+    Value: !Ref PrivateRouteTable
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-PrivateRouteTableId"
+  
+  PublicAvailabilityZone1:
+    Description: Availability zone of public subnet1.
+    Value: 
+      Fn::GetAtt: PublicSubnet1.AvailabilityZone
+    Export: 
+      Name: 
+        Fn::Sub: "${AWS::StackName}-PublicAZ1"
+  
+  PublicAvailabilityZone2:
+    Description: Availability zone of public subnet2
+    Value: 
+      Fn::GetAtt: PublicSubnet2.AvailabilityZone
+    Export: 
+      Name: 
+        Fn::Sub: "${AWS::StackName}-PublicAZ2"
+  
+  PrivateAvailabilityZone1:
+    Description: Availability zone of private subnet1
+    Value: 
+      Fn::GetAtt: PrivateSubnet1.AvailabilityZone
+    Export: 
+      Name: 
+        Fn::Sub: "${AWS::StackName}-PrivateAZ1"
+  
+  PrivateAvailabilityZone2:
+    Description: Availability zone of private subnet2
+    Value: 
+      Fn::GetAtt: PrivateSubnet2.AvailabilityZone
+    Export: 
+      Name: 
+        Fn::Sub: "${AWS::StackName}-PrivateAZ2"
+  
+  VPCRegion:
+    Description: AWS Region where VPC stack got created.
+    Value: 
+      Fn::Sub: ${AWS::Region}
+  
+  StackName:
+    Description: Your environment Cloudformation Stack Name.
+    Value: 
+      Fn::Sub: "${AWS::StackName}"
+  NatGateway:
+    Description: Natgateway id which is deployed in this template. 
+    Value: !Ref NatGateway
+  
+  NatAllocationId:
+    Description: Natgateway EIP allocation id which is deployed in this template.
+    Value: 
+      Fn::GetAtt: NatGatewayEIP.AllocationId
+  
+  NatEIP:
+    Description: Natgateway EIP which is deployed in this template.
+    Value: 
+      Ref: NatGatewayEIP
