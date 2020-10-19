@@ -203,7 +203,7 @@ Resources:
     Properties:
       AllocationId: !GetAtt NatGatewayEIP.AllocationId
       SubnetId: 
-        Ref: PrivateSubnet1
+        Ref: PublicSubnet1
 
   PrivateRoute:
     Type: AWS::EC2::Route
