@@ -31,6 +31,7 @@
       content: "{{ecommkeyout.key.private_key}}"
       dest: ecomm.pem
       mode: 0600
+    when: ecommkeyout is changed
   - name: launch a amiinstance
     cloudformation:
       stack_name: "amiinstance"

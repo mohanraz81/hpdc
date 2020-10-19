@@ -99,7 +99,7 @@ Resources:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
       TableName: 
-        Fn::Sub: "${TableName}-${AWS::StackName}"
+        Fn::Sub: "${TableName}"
 
 Outputs:
   DynamoDBTable:
