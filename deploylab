@@ -1,2 +1,5 @@
 #!/bin/bash
-aws cloudformation create-stack --stack-name $1 --template-body file://$1.yaml
+sudo pip install boto boto3 botocore
+sudo yum -y install ansible
+ansible-playbook deployansible.yaml -e ansible_python_interpreter=/usr/bin/python
+#aws cloudformation create-stack --stack-name $1 --template-body file://$1.yaml
