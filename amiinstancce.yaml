@@ -10,7 +10,7 @@ Parameters:
   InstanceType:
     Description: Choose EC2/VM instance type
     Type: String
-    Default: t3a.medium
+    Default: t3.micro
     AllowedValues:
     - t3.nano
     - t3.micro
