@@ -45,7 +45,7 @@
          SubnetId: "{{vpcout.stack_outputs.PublicSubnet1ID}}"
     register: amiinstanceout
   - name: wait for mahine to configure
-    command: sleep 10
+    command: sleep 120
   - name: Stop ami instance
     amazon.aws.ec2:
       region: "us-east-1"
