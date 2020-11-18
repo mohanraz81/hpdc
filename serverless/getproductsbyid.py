@@ -31,4 +31,4 @@ def lambda_handler(event, context):
       "statusmessage": "Added Items", 
       "response": response
   }
-  return(successmessage)  
+  return(successmessage) 
