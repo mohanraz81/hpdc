@@ -1,0 +1,4 @@
+boto3
+requests
+jsonpickle==1.3
+aws-xray-sdk==2.4.3

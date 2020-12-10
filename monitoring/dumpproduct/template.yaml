@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: An AWS Serverless Specification template describing your function.
+Resources:
+  dumpproduct:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: dumpproduct
+      Description: ''
+      Handler: lambda_function.lambda_handler
+      MemorySize: 128
+      Role: 'arn:aws:iam::080348789844:role/service-role/dumpproduct-role-c2zrjqhk'
+      Runtime: python3.8
+      Timeout: 3
+      Tracing: Active
