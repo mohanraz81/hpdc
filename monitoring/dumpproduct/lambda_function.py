@@ -16,8 +16,6 @@ class DecimalEncoder(json.JSONEncoder):
         return super(DecimalEncoder, self).default(o)
 def lambda_handler(event, context):
     try:
-      print("Printed immediately.")
-      time.sleep(100)
       awsregion="us-east-1"
       TableName="producttable"
       dynamodb=boto3.resource('dynamodb',region_name=awsregion)
