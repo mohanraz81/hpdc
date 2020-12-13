@@ -1,0 +1,45 @@
+---
+- name: Update all packages
+  yum:
+    name: '*'
+    state: latest
+- name: 
+  shell: amazon-linux-extras install -y lamp-mariadb10.2-php7.2 php7.2
+- name:
+  yum:
+    name: "{{item}}"
+    state: latest
+  loop:
+    - httpd
+    - php-gd
+- name: Enable service httpd and ensure it is not masked
+  systemd:
+    name: httpd
+    enabled: yes
+- name: Add ec2-user to groups
+  user:
+    name: ec2-user
+    groups: apache
+    append: yes
+- name: Add ec2-user to groups
+  user:
+    name: ec2-user
+    groups: apache
+    append: yes
+- name: Recursively change ownership of a directory
+  file:
+    path: /var/www
+    state: directory
+    recurse: yes
+    owner: ec2-user
+    group: ec2-user
+    mode: '2755'
+- name:
+  shell: |
+    wget https://wordpress.org/latest.tar.gz
+    tar -xzf latest.tar.gz
+    sed -e 's/database_name_here/hpdcdb/g' -e 's/username_here/admin/g' -e 's/password_here/admin123/g' -e 's/localhost/{{dbinstance.stack_outputs.DBInstance}}/g' wordpress/wp-config-sample.php > wordpress/wp-config.php 
+    cp -r wordpress/* /var/www/html/
+    
+
+    

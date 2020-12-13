@@ -21,17 +21,6 @@
       dest: ecomm.pem
       mode: 0600
     when: ecommkeyout is changed
-  - name: launch a amiinstance
-    cloudformation:
-      stack_name: "amiinstance"
-      state: "present"
-      region: "us-east-1"
-      disable_rollback: true
-      template: "amiinstance.yaml"
-      template_parameters:
-         VPCID: "{{vpcout.stack_outputs.VPCID}}"
-         SubnetId: "{{vpcout.stack_outputs.PublicSubnet1ID}}"
-    register: amiinstanceout
   - name: launch a db instance
     cloudformation:
       stack_name: "hddcdb"
@@ -44,3 +33,22 @@
          Subnet1: "{{vpcout.stack_outputs.PrivateSubnet1ID}}"
          Subnet2: "{{vpcout.stack_outputs.PrivateSubnet2ID}}"
     register: dbinstance
+  - name: launch a amiinstance
+    cloudformation:
+      stack_name: "amiinstance"
+      state: "present"
+      region: "us-east-1"
+      disable_rollback: true
+      template: "amiinstance.yaml"
+      template_parameters:
+         VPCID: "{{vpcout.stack_outputs.VPCID}}"
+         SubnetId: "{{vpcout.stack_outputs.PublicSubnet1ID}}"
+    register: amiinstanceout
+  - name: add the hosts
+    add_host: 
+      name: '{{amiinstanceout.stack_outputs.EC2PublicIp}}'
+      ansible_user: ec2-user
+      ansible_ssh_private_key_file: ecomm.pem
+      ansible_become: yes
+  - import_tasks: installwordpress.yaml
+    delegate_to: '{{amiinstanceout.stack_outputs.EC2PublicIp}}'

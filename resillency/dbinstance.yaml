@@ -18,8 +18,7 @@ Resources:
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: 
-        Fn::Sub: ${AWS::StackName}-DBSG
+      GroupName: hpdcdbsg
       GroupDescription: Allow http to client host
       VpcId:
         Ref: VPCID
@@ -30,6 +29,7 @@ Resources:
         CidrIp: 10.0.0.0/16
   myDBSubnetGroup:
     Type: "AWS::RDS::DBSubnetGroup"
+    DependsOn: SecurityGroup
     Properties: 
       DBSubnetGroupName: dbsngroup
       DBSubnetGroupDescription: dbsubnetgroup
@@ -38,6 +38,7 @@ Resources:
         - !Ref Subnet2
   MyDB:
     Type: 'AWS::RDS::DBInstance'
+    DependsOn: myDBSubnetGroup
     Properties:
       DBInstanceIdentifier: hpdcdb
       DBName: hpdcdb
@@ -49,10 +50,8 @@ Resources:
       MasterUserPassword: admin123
       MultiAZ: true
       DBSubnetGroupName: dbsngroup
-      DBSecurityGroups:
-        - 
-          Fn::Sub: ${AWS::StackName}-DBSG
-      
+      VPCSecurityGroups:
+        - !Ref SecurityGroup
 Outputs:
   SecurityGroupId:
     Description: Security group with ssh http https rdp ingress rule

@@ -118,20 +118,6 @@ Resources:
         IamInstanceProfile:
           Name:
             Ref: EC2InstanceProfile
-        UserData:
-          Fn::Base64:
-            !Sub |
-              #!/bin/bash
-              sudo yum -y install git curl wget httpd  python python-pip mod_wsgi.x86_64
-              sudo pip install flask boto3 ec2-metadata
-              git clone https://github.com/mohanraz81/pythonproject.git
-              sudo echo '200 Ok' |sudo tee /var/www/html/status.html
-              sudo echo 'export TableName=producttable' |sudo tee /etc/environment
-              sudo cp -R pythonproject/frontend/code/* /var/www
-              sudo cp pythonproject/frontend/config/archeplay.conf /etc/httpd/conf.d/archeplay.conf
-              sudo systemctl start httpd
-              sudo systemctl enable httpd
-
       LaunchTemplateName: 
         Fn::Sub: ${AWS::StackName}-LaunchTemplate
         
@@ -172,6 +158,10 @@ Outputs:
     Description: PublicDNS 
     Value:
       Fn::GetAtt: EC2Instance.PrivateDnsName
+  EC2PublicIp:
+    Description: PublicDNS 
+    Value:
+      Fn::GetAtt: EC2Instance.PublicIp
   
   DevEnvRoleName:
     Description: Role Name of Development Environment Role
