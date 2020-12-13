@@ -49,6 +49,9 @@ Resources:
       MasterUserPassword: admin123
       MultiAZ: true
       DBSubnetGroupName: dbsngroup
+      DBSecurityGroups:
+        - 
+          Fn::Sub: ${AWS::StackName}-DBSG
       
 Outputs:
   SecurityGroupId:
