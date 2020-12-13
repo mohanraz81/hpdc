@@ -1,0 +1,46 @@
+---
+- name: deploy the hpdc lab
+  hosts: localhost
+  tasks:
+  - name: launch a vpc
+    cloudformation:
+      stack_name: "vpc"
+      state: "present"
+      region: "us-east-1"
+      disable_rollback: true
+      template: "vpc.yaml"
+    register: vpcout
+  - name: example ec2 key
+    ec2_key:
+      region: "us-east-1"
+      name: ecommkey
+    register: ecommkeyout
+  - name: example copying file with owner and permissions
+    copy:
+      content: "{{ecommkeyout.key.private_key}}"
+      dest: ecomm.pem
+      mode: 0600
+    when: ecommkeyout is changed
+  - name: launch a amiinstance
+    cloudformation:
+      stack_name: "amiinstance"
+      state: "present"
+      region: "us-east-1"
+      disable_rollback: true
+      template: "amiinstance.yaml"
+      template_parameters:
+         VPCID: "{{vpcout.stack_outputs.VPCID}}"
+         SubnetId: "{{vpcout.stack_outputs.PublicSubnet1ID}}"
+    register: amiinstanceout
+  - name: launch a db instance
+    cloudformation:
+      stack_name: "hddcdb"
+      state: "present"
+      region: "us-east-1"
+      disable_rollback: true
+      template: "dbinstance.yaml"
+      template_parameters:
+         VPCID: "{{vpcout.stack_outputs.VPCID}}"
+         Subnet1: "{{vpcout.stack_outputs.PrivateSubnet1ID}}"
+         Subnet2: "{{vpcout.stack_outputs.PrivateSubnet2ID}}"
+    register: dbinstance

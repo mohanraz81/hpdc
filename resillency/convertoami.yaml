@@ -1,0 +1,39 @@
+ - name: wait for mahine to configure
+    command: sleep 120
+  - name: Stop ami instance
+    amazon.aws.ec2:
+      region: "us-east-1"
+      instance_ids: 
+        - "{{amiinstanceout.stack_outputs.EC2InstanceId}}"
+      state: stopped
+      wait: yes
+  - name: Basic AMI Creation
+    amazon.aws.ec2_ami:
+      region: "us-east-1"
+      instance_id: "{{amiinstanceout.stack_outputs.EC2InstanceId}}"
+      wait: yes
+      name: ecomm-ami-1.0
+      tags:
+        Name: ecomm-ami-1.0
+      state: present
+    register: amiout
+    
+  - debug:
+      var: amiout
+  - name: Deploy Autoscaling and ALb
+    cloudformation:
+      stack_name: "autoscaling"
+      state: "present"
+      region: "us-east-1"
+      disable_rollback: true
+      template: "autoscaling.yaml"
+      template_parameters:
+        VPCID: "{{vpcout.stack_outputs.VPCID}}"
+        PublicSubnet1ID: "{{vpcout.stack_outputs.PublicSubnet1ID}}"
+        PublicSubnet2ID: "{{vpcout.stack_outputs.PublicSubnet2ID}}"
+        PrivateSubnet1ID: "{{vpcout.stack_outputs.PrivateSubnet1ID}}"
+        PrivateSubnet2ID: "{{vpcout.stack_outputs.PrivateSubnet2ID}}"
+        KeyName: ecommkey
+        Ami: "{{amiout.image_id}}"
+         
+
