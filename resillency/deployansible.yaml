@@ -52,3 +52,13 @@
       ansible_become: yes
   - import_tasks: installwordpress.yaml
     delegate_to: '{{amiinstanceout.stack_outputs.EC2PublicIp}}'
+  - copy:
+      content: |
+        vpcid: "{{vpcout.stack_outputs.VPCID}}"
+        publicsn1: "{{vpcout.stack_outputs.PublicSubnet1ID}}"
+        publicsn2: "{{vpcout.stack_outputs.PublicSubnet2ID}}"
+        privatesn1: "{{vpcout.stack_outputs.PrivateSubnet1ID}}"
+        privatesn2: "{{vpcout.stack_outputs.PrivateSubnet2ID}}"
+        instanceid: '{{amiinstanceout.stack_outputs.EC2InstanceId}}'
+      dest: amiserverout.yaml
+     
