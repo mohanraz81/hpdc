@@ -1,0 +1,66 @@
+---
+Description:  This template deploys a selected OS Environment
+
+Parameters:
+  VPCID:
+    Description: Select a Subnet for EC2 instance
+    Type: String
+  Subnet1:
+    Description: Select a Subnet for EC2 instance
+    Type: String
+  Subnet2:
+    Description: Select a Subnet for EC2 instance
+    Type: String
+  snapshotid:
+    Description: Select a Subnet for EC2 instance
+    Type: String
+
+
+Resources:
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: hpdcdbsg
+      GroupDescription: Allow http to client host
+      VpcId:
+        Ref: VPCID
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 3306
+        ToPort: 3306
+        CidrIp: 10.0.0.0/16
+  myDBSubnetGroup:
+    Type: "AWS::RDS::DBSubnetGroup"
+    DependsOn: SecurityGroup
+    Properties: 
+      DBSubnetGroupName: dbsngroup
+      DBSubnetGroupDescription: dbsubnetgroup
+      SubnetIds: 
+        - !Ref Subnet1
+        - !Ref Subnet2
+  MyDB:
+    Type: 'AWS::RDS::DBInstance'
+    DependsOn: myDBSubnetGroup
+    Properties:
+      DBSnapshotIdentifier: !Ref snapshotid
+      DBInstanceIdentifier: hpdcdb
+      DBName: hpdcdb
+      DBInstanceClass: db.t3.micro
+      AllocatedStorage: 20
+      Engine: MySQL
+      EngineVersion: 8.0.16
+      MasterUsername: admin
+      MasterUserPassword: admin123
+      MultiAZ: true
+      DBSubnetGroupName: dbsngroup
+      VPCSecurityGroups:
+        - !Ref SecurityGroup
+Outputs:
+  SecurityGroupId:
+    Description: Security group with ssh http https rdp ingress rule
+    Value:
+      Ref: SecurityGroup
+  
+  DBInstance:
+    Description: Instance id of EC2
+    Value: !GetAtt MyDB.Endpoint.Address
