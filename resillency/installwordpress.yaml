@@ -16,6 +16,7 @@
   systemd:
     name: httpd
     enabled: yes
+    state: started
 - name: Add ec2-user to groups
   user:
     name: ec2-user
