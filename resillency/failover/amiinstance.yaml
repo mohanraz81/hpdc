@@ -36,7 +36,7 @@ Parameters:
 
 Mappings:
   Ops:
-    us-east-1:
+    us-east-2:
       Ubuntu: ami-06b263d6ceff0b3dd
       CentOS: ami-0affd4508a5d2481b
       AmazonLinux2: ami-0c94855ba95c71c99

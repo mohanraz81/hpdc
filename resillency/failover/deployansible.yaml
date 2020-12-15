@@ -6,13 +6,13 @@
     cloudformation:
       stack_name: "vpc"
       state: "present"
-      region: "us-east-1"
+      region: "us-east-2"
       disable_rollback: true
       template: "vpc.yaml"
     register: vpcout
   - name: example ec2 key
     ec2_key:
-      region: "us-east-1"
+      region: "us-east-2"
       name: ecommkey
     register: ecommkeyout
   - name: example copying file with owner and permissions
@@ -25,7 +25,7 @@
     cloudformation:
       stack_name: "hddcdb"
       state: "present"
-      region: "us-east-1"
+      region: "us-east-2"
       disable_rollback: true
       template: "dbinstance.yaml"
       template_parameters:
@@ -37,7 +37,7 @@
     cloudformation:
       stack_name: "amiinstance"
       state: "present"
-      region: "us-east-1"
+      region: "us-east-2"
       disable_rollback: true
       template: "amiinstance.yaml"
       template_parameters:
@@ -48,7 +48,7 @@
     cloudformation:
       stack_name: "loadbalancer"
       state: "present"
-      region: "us-east-1"
+      region: "us-east-2"
       disable_rollback: true
       template: "loadbalancer.yaml"
       template_parameters:

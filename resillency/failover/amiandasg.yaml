@@ -4,14 +4,14 @@
   tasks:
   - name: Stop ami instance
     ec2:
-      region: "us-east-1"
+      region: "us-east-2"
       instance_ids: 
         - "{{instanceid}}"
       state: stopped
       wait: yes
   - name: Basic AMI Creation
     amazon.aws.ec2_ami:
-      region: "us-east-1"
+      region: "us-east-2"
       instance_id: "{{instanceid}}"
       wait: yes
       name: ecomm-ami-1.0
@@ -26,7 +26,7 @@
     cloudformation:
       stack_name: "autoscaling"
       state: "present"
-      region: "us-east-1"
+      region: "us-east-2"
       disable_rollback: true
       template: "autoscaling.yaml"
       template_parameters:
