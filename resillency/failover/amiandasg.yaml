@@ -2,13 +2,13 @@
 - name: deploy the hpdc lab
   hosts: localhost
   tasks:
-  # - name: Stop ami instance
-  #   ec2:
-  #     region: "us-east-1"
-  #     instance_ids: 
-  #       - "{{instanceid}}"
-  #     state: stopped
-  #     wait: yes
+  - name: Stop ami instance
+    ec2:
+      region: "us-east-1"
+      instance_ids: 
+        - "{{instanceid}}"
+      state: stopped
+      wait: yes
   - name: Basic AMI Creation
     amazon.aws.ec2_ami:
       region: "us-east-1"
