@@ -1,0 +1,14 @@
+---
+- name: deploy the hpdc lab
+  hosts: localhost
+  tasks:
+  - name: launch a vpc
+    cloudformation:
+      stack_name: "c9-admin-role"
+      state: "present"
+      region: "us-east-1"
+      disable_rollback: true
+      template: "create-admin-role.yaml"
+    register: vpcout
+  - shell: aws ec2 associate-iam-instance-profile --instance-id `curl  http://169.254.169.254/latest/meta-data/instance-id` --iam-instance-profile Name=c9-arche-role --region us-east-1
+      

@@ -44,6 +44,17 @@
          VPCID: "{{vpcout.stack_outputs.VPCID}}"
          SubnetId: "{{vpcout.stack_outputs.PublicSubnet1ID}}"
     register: amiinstanceout
+  - name: launch a amiinstance
+    cloudformation:
+      stack_name: "loadbalancer"
+      state: "present"
+      region: "us-east-1"
+      disable_rollback: true
+      template: "amiinstance.yaml"
+      template_parameters:
+         VPCID: "{{vpcout.stack_outputs.VPCID}}"
+         SubnetId: "{{vpcout.stack_outputs.PublicSubnet1ID}}"
+    register: loadbalancer
   - name: add the hosts
     add_host: 
       name: '{{amiinstanceout.stack_outputs.EC2PublicIp}}'
@@ -60,5 +71,8 @@
         privatesn1: "{{vpcout.stack_outputs.PrivateSubnet1ID}}"
         privatesn2: "{{vpcout.stack_outputs.PrivateSubnet2ID}}"
         instanceid: '{{amiinstanceout.stack_outputs.EC2InstanceId}}'
+        instancesg: '{{loadbalancer.stack_outputs.InstanceSecurityGroup}}'
+        lbdns: '{{loadbalancer.stack_outputs.LoadBalancerDNS}}'
+        targetgroup: '{{loadbalancer.stack_outputs.ApplicationLoadBalancerTargetGroup}}'
       dest: amiserverout.yaml
      
