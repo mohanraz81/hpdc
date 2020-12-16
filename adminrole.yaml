@@ -2,7 +2,7 @@
 - name: deploy the hpdc lab
   hosts: localhost
   tasks:
-  - name: launch a vpc
+  - name: Create Admin Role
     cloudformation:
       stack_name: "c9-admin-role"
       state: "present"

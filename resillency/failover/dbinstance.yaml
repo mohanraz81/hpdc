@@ -44,13 +44,8 @@ Resources:
     Properties:
       DBSnapshotIdentifier: !Ref snapshotid
       DBInstanceIdentifier: hpdcdb
-      DBName: hpdcdb
       DBInstanceClass: db.t3.micro
       AllocatedStorage: 20
-      Engine: MySQL
-      EngineVersion: 8.0.16
-      MasterUsername: admin
-      MasterUserPassword: admin123
       MultiAZ: true
       DBSubnetGroupName: dbsngroup
       VPCSecurityGroups:

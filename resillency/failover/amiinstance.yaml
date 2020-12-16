@@ -94,7 +94,7 @@ Resources:
             Action: 
               - "sts:AssumeRole"
       RoleName:
-        Fn::Sub: ${AWS::StackName}-DevEnvRole
+        Fn::Sub: ${AWS::StackName}-DevEnvRoleBackup
       ManagedPolicyArns: 
         - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
         

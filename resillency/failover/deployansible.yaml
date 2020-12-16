@@ -32,6 +32,7 @@
          VPCID: "{{vpcout.stack_outputs.VPCID}}"
          Subnet1: "{{vpcout.stack_outputs.PrivateSubnet1ID}}"
          Subnet2: "{{vpcout.stack_outputs.PrivateSubnet2ID}}"
+         snapshotid: hpdc-backup
     register: dbinstance
   - name: launch a amiinstance
     cloudformation:
