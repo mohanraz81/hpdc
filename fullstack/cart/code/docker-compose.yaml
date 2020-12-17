@@ -4,7 +4,7 @@ services:
   cart-proxy:
     build:
       context: ./proxy
-    image: cart-proxy
+    image: mohanraz81/cart-proxy
     depends_on:
       - cart-api
     ports:
@@ -19,7 +19,7 @@ services:
       context: ./api
     ports:
       - "5000:5000"
-    image: cart-api
+    image: mohanraz81/cart-api
     environment:
       MYSQL_HOST: cart-db
       MYSQL_DATABASE: cartdb

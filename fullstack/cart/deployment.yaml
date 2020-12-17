@@ -37,6 +37,15 @@ spec:
           requests:
             cpu: "0.2"
             memory: "200Mi"
+        env:
+          - name: "MYSQL_HOST"
+            value: "cart-db"
+          - name: "MYSQL_DATABASE"
+            value: "cartdb"
+          - name: "MYSQL_USER"
+            value: "dbusername"
+          - name: "MYSQL_PASSWORD"
+            value: "dbpassword"
       - name: cartproxy
         image: mohanraz81/cart-proxy
         imagePullPolicy: Always
@@ -49,3 +58,12 @@ spec:
           requests:
             cpu: "0.2"
             memory: "200Mi"
+        env:
+          - name: "MYSQL_HOST"
+            value: "cart-db"
+          - name: "MYSQL_DATABASE"
+            value: "cartdb"
+          - name: "MYSQL_USER"
+            value: "dbusername"
+          - name: "MYSQL_PASSWORD"
+            value: "dbpassword"
