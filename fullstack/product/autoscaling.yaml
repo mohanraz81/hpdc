@@ -1,0 +1,254 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description:  This template deploys a AutoScaling Group with the Launch Template and Application Load Balancer
+
+Metadata:
+  Architecture:
+    - Title: ASG-ALB-PUB-HTTP
+      Image: image1
+      Description: Architecture for VPC with Public and Private Subnets.
+
+Parameters:
+  VPCID:
+    Description: Give VPC ID of the network Stack
+    Type: String
+  targetgroup:
+    Description: Give VPC ID of the network Stack
+    Type: String
+  instancesg:
+    Description: Give VPC ID of the network Stack
+    Type: String
+  PrivateSubnet1ID:
+    Description: Give one of the Public subnet IDs of the network Stack
+    Type: String
+  
+  PrivateSubnet2ID:
+    Description: Give one of the Public subnet IDs of the network Stack (different from what mentioned above)
+    Type: String
+  
+  InstanceType:
+    Description: Choose EC2/VM instance type
+    Type: String
+    Default: t3.micro
+
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: String
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+
+  Ami:
+    Description: Ami-Id of the EC2 instance
+    Type: String
+    Default: ami-0c94855ba95c71c99
+
+  MinSizeASGs:
+    Description: Minimum number of EC2s to be launched with ASG
+    Type: Number
+    Default: 2
+    
+  DesiredCapacityASG:
+    Description: Desired number of EC2s to be launched with ASG
+    Type: Number
+    Default: 2
+
+  MaxSizeASGs:
+    Description: Maximum number of EC2s to be launched with ASG
+    Type: Number
+    Default: 4
+
+
+  
+  AutoscalingTargetValue:
+    Description: Mention TargetValue for AutoScalingGroup
+    Type: Number
+    Default: 70
+  
+  ASGCoolDown:
+    Description: Cooldown Period for EC2 instances when scaling down
+    Type: Number
+    Default: 300
+  
+  EstimatedInstanceWarmup:
+    Description: EstimatedInstanceWarmup for EC2 instances when scale up
+    Type: Number
+    Default: 60
+  
+  EmailAddress:
+    Description: email address to send email when Alarm triggers
+    Type: String
+    Default: example@example.com
+  
+
+
+Resources:
+  ASGALBRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Description: IAM Role for the EC2 AutoScaling Group.
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Principal: 
+              Service: 
+                - "ec2.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      RoleName:
+        Fn::Sub: ${AWS::StackName}-Role
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+  ASGALBPublicInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Metadata:
+      Description: IAM Role for the EC2 in the autoscaling group.
+    Properties:
+      Roles: 
+        - !Ref ASGALBRole
+ 
+  ASGALBPublicSNSTopic:
+    Type: AWS::SNS::Topic
+    Metadata:
+      Description: SNS Topic for the AutoScalingGroup's EC2 instances when there is status change in EC2 instances.
+    Properties:
+      TopicName:
+        Fn::Sub: ${AWS::StackName}-Public
+      Subscription:
+        - Protocol: email
+          Endpoint: !Ref EmailAddress
+  
+
+
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Metadata:
+      Description: LaunchTemplate for the EC2 instances for the AutoScaling Group of the Product. Product Service will be installed here.
+    Properties:
+      LaunchTemplateData:
+        InstanceType:
+          Ref: InstanceType
+        DisableApiTermination: 'true'
+        KeyName: !Ref KeyName
+        ImageId:
+          Ref: Ami
+        SecurityGroupIds:
+        - !Ref instancesg
+        IamInstanceProfile:
+          Name:
+            Ref: ASGALBPublicInstanceProfile
+      LaunchTemplateName: 
+        Fn::Sub: "${AWS::StackName}-LaunchTemplate"
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Metadata:
+      Description: AutoScaling Group of the Service.
+    Properties:
+      AutoScalingGroupName: 
+        Fn::Sub: "${AWS::StackName}-AutoscalingGroup"
+      Cooldown:
+        Ref: ASGCoolDown
+      DesiredCapacity:
+        Ref: DesiredCapacityASG
+      LaunchTemplate: 
+        LaunchTemplateId: 
+          Ref: LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      MaxSize:
+        Ref: MaxSizeASGs
+      MinSize:
+        Ref: MinSizeASGs
+      Tags:
+        - 
+          Key: Name
+          Value:
+            Fn::Sub: "${AWS::StackName}-AutoscalingGroup"
+          PropagateAtLaunch: 'true'
+      VPCZoneIdentifier: 
+        -
+          Ref: PrivateSubnet1ID
+        - 
+          Ref: PrivateSubnet2ID
+      TargetGroupARNs:
+        - 
+          Ref: targetgroup
+      
+      NotificationConfigurations: 
+        - NotificationTypes: 
+            - autoscaling:EC2_INSTANCE_LAUNCH
+            - autoscaling:EC2_INSTANCE_LAUNCH_ERROR
+            - autoscaling:EC2_INSTANCE_TERMINATE
+            - autoscaling:EC2_INSTANCE_TERMINATE_ERROR
+          TopicARN:
+            Ref: ASGALBPublicSNSTopic
+
+  AutoScalingGroupPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Metadata:
+      Description: AutoScaling Group Policy with the Average CPU Utilization to scale up or scale down
+    Properties: 
+      AdjustmentType: ChangeInCapacity
+      Cooldown:
+        Ref: ASGCoolDown
+      EstimatedInstanceWarmup:
+        Ref: EstimatedInstanceWarmup
+      AutoScalingGroupName:
+        Ref: AutoScalingGroup
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration: 
+          DisableScaleIn: False
+          PredefinedMetricSpecification:
+             PredefinedMetricType: ASGAverageCPUUtilization
+          TargetValue:
+            Ref: AutoscalingTargetValue
+
+  # CPUUtilisationAlarmHigh:
+  #   Type: AWS::CloudWatch::Alarm
+  #   Properties:
+  #     MetricName: CPUUtilization
+  #     Namespace: AWS/EC2
+  #     Statistic: Average
+  #     Period: 60
+  #     EvaluationPeriods: 1
+  #     Threshold: 70
+  #     AlarmActions:
+  #       - !Ref AutoScalingGroupPolicy
+  #       - !Ref CPUUtilisationHighSNSTopic
+  #     Dimensions:
+  #       - Name: TargetGroup
+  #         Value: !GetAtt ApplicationLoadBalancerTargetGroup.TargetGroupFullName
+  #     ComparisonOperator: GreaterThanOrEqualToThreshold
+
+
+Outputs:
+
+
+  LaunchTemplate:
+    Description: A reference to the LaunchTemplate
+    Value: !Ref LaunchTemplate
+  
+  AutoScalingGroup:
+    Description: Autoscaling group
+    Value: !Ref AutoScalingGroup
+  
+  AutoScalingGroupPolicy:
+    Description: Autoscaling group
+    Value: !Ref AutoScalingGroupPolicy
+
+  ASGALBRoleName:
+    Description: Role of ASGALBRole Name
+    Value:
+      Ref: ASGALBRole
+  
+  ASGALBRoleARN:
+    Description: Role of ASGALBRole
+    Value:
+      Fn::GetAtt: ASGALBRole.Arn
+  
+  MonitoringURL:
+    Description: MonitoringURL for AutoScalingGroup
+    Value:
+      Fn::Sub: "https://console.aws.amazon.com/ec2autoscaling/home?region=${AWS::Region}#/details/${AWS::StackName}-AutoscalingGroup?view=monitoring"
+

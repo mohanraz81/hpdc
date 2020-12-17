@@ -1,0 +1,107 @@
+---
+- name: deploy the hpdc lab
+  hosts: localhost
+  tasks:
+  - name: example ec2 key
+    ec2_key:
+      region: "us-east-1"
+      name: ecommkey
+    register: ecommkeyout
+  - name: example copying file with owner and permissions
+    copy:
+      content: "{{ecommkeyout.key.private_key}}"
+      dest: ecomm.pem
+      mode: 0600
+    when: ecommkeyout is changed
+  - name: launch a amiinstance
+    cloudformation:
+      stack_name: "amiinstance"
+      state: "present"
+      region: "us-east-1"
+      disable_rollback: true
+      template: "amiinstance.yaml"
+      template_parameters:
+         VPCID: "{{vpcid}}"
+         SubnetId: "{{publicsn1}}"
+    register: amiinstanceout
+  - name: launch a loadblancer
+    cloudformation:
+      stack_name: "loadbalancer"
+      state: "present"
+      region: "us-east-1"
+      disable_rollback: true
+      template: "loadbalancer.yaml"
+      template_parameters:
+         VPCID: "{{vpcid}}"
+         PublicSubnet1ID: "{{publicsn1}}"
+         PublicSubnet2ID: "{{publicsn2}}"
+    register: loadbalancer
+  - name: launch a dynamodb
+    cloudformation:
+      stack_name: "dynamodb"
+      state: "present"
+      region: "us-east-1"
+      disable_rollback: true
+      template: "dynamodb.yaml"
+    register: dynamodbout
+  - name: add the hosts
+    add_host: 
+      name: '{{amiinstanceout.stack_outputs.EC2PublicIp}}'
+      ansible_user: ec2-user
+      ansible_ssh_private_key_file: ecomm.pem
+      ansible_become: yes
+      ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+  - name: Wait 300 seconds for port 22 to become open and contain "OpenSSH"
+    wait_for:
+      port: 22
+      host: '{{amiinstanceout.stack_outputs.EC2PublicIp}}'
+      search_regex: OpenSSH
+      delay: 10
+    vars:
+      ansible_connection: local
+  - copy:
+     src: userdata.sh
+     dest: /userdata.sh
+     mode: 0755
+    delegate_to: '{{amiinstanceout.stack_outputs.EC2PublicIp}}'
+  - shell: |
+      cd /
+      sh -x /userdata.sh
+      sleep 240
+    delegate_to: '{{amiinstanceout.stack_outputs.EC2PublicIp}}'
+  - name: Stop ami instance
+    ec2:
+      region: "us-east-1"
+      instance_ids: 
+        - "{{instanceid}}"
+      state: stopped
+      wait: yes
+  - name: Basic AMI Creation
+    amazon.aws.ec2_ami:
+      region: "us-east-1"
+      instance_id: "{{instanceid}}"
+      wait: yes
+      name: ecomm-ami-1.0
+      tags:
+        Name: ecomm-ami-1.0
+      state: present
+    register: amiout
+    
+  - debug:
+      var: amiout
+  - name: Deploy Autoscaling and ALb
+    cloudformation:
+      stack_name: "autoscaling"
+      state: "present"
+      region: "us-east-1"
+      disable_rollback: true
+      template: "autoscaling.yaml"
+      template_parameters:
+        VPCID: "{{vpcid}}"
+        PrivateSubnet1ID: "{{privatesn1}}"
+        PrivateSubnet2ID: "{{privatesn2}}"
+        KeyName: ecommkey
+        Ami: "{{amiout.image_id}}"
+        targetgroup: "{{targetgroup}}"
+        instancesg: "{{instancesg}}"
+         
