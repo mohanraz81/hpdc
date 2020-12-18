@@ -1,0 +1,14 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: An AWS Serverless Specification template describing your function.
+Resources:
+  dumpproduct:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: checkout
+      Description: 'checkout'
+      Handler: lambda_function.lambda_handler
+      MemorySize: 128
+      Runtime: python3.8
+      Tracing: Active
+      Timeout: 60

@@ -1,0 +1,5 @@
+kubectl create namespace ecomm
+kubectl apply -f db.yaml
+kubectl apply -f dbservice.yaml
+kubectl apply -f deployment.yaml
+kubectl apply -f services.yaml

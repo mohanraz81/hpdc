@@ -69,6 +69,11 @@
       sh -x /userdata.sh
       sleep 240
     delegate_to: '{{amiinstanceout.stack_outputs.EC2PublicIp}}'
+  - set_fact:
+      instanceid: '{{amiinstanceout.stack_outputs.EC2InstanceId}}'
+      instancesg: '{{loadbalancer.stack_outputs.InstanceSecurityGroup}}'
+      lbdns: '{{loadbalancer.stack_outputs.LoadBalancerDNS}}'
+      targetgroup: '{{loadbalancer.stack_outputs.ApplicationLoadBalancerTargetGroup}}'
   - name: Stop ami instance
     ec2:
       region: "us-east-1"

@@ -1,0 +1,262 @@
+<!-- This will refer the type of the document -->
+<!DOCTYPE html>
+
+<!-- Start of the Document -->
+<html lang="en">
+
+<!-- In this we will be using Jquery(3.5.1) library for the javascript functionalities and Bootstrap(4.5) for UI framework and we will be using our custom CSS file and JS file, index.css and index.js respectively. We are using more bootstrap class names that you can see in every html tag in "class" attribute-->
+
+<!-- Start of Head tag -->
+
+<head>
+    <!-- Default meta tags for HTML:5 https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta check this link for further information -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Title of the HTML page that you will see in the browser tab -->
+    <title>Archeplay - Products</title>
+
+    <!-- Jquery CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- Bootstrap is an UI framework that is mainly used when we are using Jquery. check for https://getbootstrap.com/docs/4.5/getting-started/introduction/ for further information about bootstrap -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+
+    <!-- this will depicts the icon in top tab that you will see in the browser -->
+    <link rel="icon" type="image/png" sizes="16x16" href="./images/fevicon.png">
+
+    <!-- Integrating CSS file -->
+    <link rel="stylesheet" href="./css/common.css" />
+    <link rel="stylesheet" href="./css/index.css" />
+</head>
+<!-- End of Head Tag -->
+
+<!-- Start of Body Tag -->
+
+<body>
+    <!-- Header of the page -->
+    <header>
+        <div class="max-width d-flex flex-row">
+            <div>
+                <img alt="Archeplay" src="./images/Ap_logo_1.png" />
+            </div>
+            <div class="d-flex">
+                <div class="d-flex align-items-center bg-secondary text-white p-2 pointer mr-2" id="my-cart">
+                    <span class="material-icons">
+                        shopping_cart
+                    </span>
+                    <span class="ml-1">
+                        My Cart&nbsp;&nbsp;
+                    </span>
+                    <span class="badge badge-light" id="my-cart-count">0</span>
+                </div>
+                <div class="d-flex align-items-center bg-secondary text-white p-2 pointer" id="my-orders">
+                    <span class="material-icons">
+                        shopping_cart
+                    </span>
+                    <span class="ml-1">
+                        My Orders&nbsp;&nbsp;
+                    </span>
+                    <span class="badge badge-light" id="my-orders-count">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Section -->
+    <main>
+        <section class="p-4 main-blk max-width" id="prod-sec" hidden>
+            <div class="row flex-wrap m-0" id="prd-blk">
+
+            </div>
+        </section>
+        <section class="p-4 max-width" id="my-cart-sec" hidden>
+            <div class="row m-0">
+                <div class="mb-4 col-11 p-0 d-flex align-items-center justify-content-between">
+                    <div class="d-flex">
+                        <p class="text-primary h3 font-weight-bold mr-4 to-home pointer">Home</p>
+                        <p class="h3 mr-4">></p>
+                        <p class="h3 font-weight-bold">Shopping Cart</p>
+                    </div>
+                    <div class="d-flex bg-success text-white align-items-center p-2 pl-4 pr-4 pointer"
+                        id="checkout-trigger">
+                        <span>Proceed to Checkout&nbsp;&nbsp;</span>
+                        <span class="material-icons">
+                            arrow_right_alt
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="row m-0 p-0">
+                <div class="border col-11 p-0">
+                    <div class="border-bottom  pt-3 pb-3 pl-4 pr-4 d-flex align-items-center justify-content-between">
+                        <h3 class="m-0 font-weight-bold">Products</h3>
+                        <h5 class="m-0 font-weight-bold" id="total-cost"></h5>
+                    </div>
+                    <div class="p-4" id="mycart-blk">
+
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="p-4 max-width" id="cur-prod-sec" hidden>
+            <div class="mb-4 col-11 p-0 d-flex align-items-center">
+                <p class="text-primary h3 font-weight-bold mr-4 to-home pointer">Home</p>
+                <p class="h3 mr-4">></p>
+                <p class="h3 font-weight-bold prod-id"></p>
+            </div>
+            <div class="" id="cur-prod-blk">
+
+            </div>
+        </section>
+        <section class="p-4 max-width" id="my-order-sec" hidden>
+            <div class="row m-0">
+                <div class="mb-4 col-11 p-0 d-flex align-items-center justify-content-between">
+                    <div class="d-flex">
+                        <p class="text-primary h3 font-weight-bold mr-4 to-home pointer">Home</p>
+                        <p class="h3 mr-4">></p>
+                        <p class="h3 font-weight-bold">Confirm Order</p>
+                    </div>
+                    <div class="d-flex bg-success text-white align-items-center p-2 pl-4 pr-4 pointer"
+                        id="confirm-order">
+                        <span>Confirm Order&nbsp;&nbsp;</span>
+                        <span class="material-icons">
+                            arrow_right_alt
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="row m-0 p-0">
+                <div class="border col-11 p-0">
+                    <div class="border-bottom  pt-3 pb-3 pl-4 pr-4 d-flex align-items-center justify-content-between">
+                        <h3 class="m-0 font-weight-bold">Products</h3>
+                        <h5 class="m-0 font-weight-bold" id="total-cost"></h5>
+                    </div>
+                    <div class="p-4" id="myorder-blk">
+
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer for tha page -->
+    <footer>
+        <div class="d-flex flex-row align-items-center justify-content-center w-100 h-100">
+            <h6 class="m-0 copyright" style="font-size: smaller;">
+            </h6>
+        </div>
+    </footer>
+
+
+    <!-- For Displaying Messages -->
+    <div class="toast fixed" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false"
+        data-delay="7000" data-animation="true">
+        <div class="toast-header">
+            <strong class="mr-auto">Message</strong>
+            <button type="button" class="ml-2 mb-1 close-toast" data-dismiss="toast" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="toast-body">
+
+        </div>
+    </div>
+
+    <!-- Checkout modal -->
+    <div class="modal fade" id="CheckoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title font-weight-bold" id="exampleModalLongTitle">Place Order</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="step1-address">
+                        <div class="mb-3">
+                            <h5 class="font-weight-bold">Delivery Address</h5>
+                        </div>
+                        <form id="checkout-step1-form">
+                            <div class="form-group">
+                                <label for="name" class="required">Name</label>
+                                <input type="text" class="form-control" id="name" key="Name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="Address" class="required">Address</label>
+                                <textarea type="text" class="form-control" id="Address" key="Address" required
+                                    rows="4"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="District" class="required">District</label>
+                                <input type="text" class="form-control" id="District" key="District" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="PinCode" class="required">Pin Code</label>
+                                <input type="text" class="form-control" id="PinCode" key="PinCode" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="State" class="required">State</label>
+                                <input type="text" class="form-control" id="State" key="State" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="Country" class="required">Country</label>
+                                <input type="text" class="form-control" id="PinCode" key="Country" required>
+                            </div>
+
+                            <div>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-primary" id="trigger-step2">Next</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div id="step2-payment" hidden>
+                        <div class="mb-3">
+                            <h5 class="font-weight-bold">Pay with card</h5>
+                        </div>
+                        <form id="checkout-step2-form">
+                            <div class="form-group">
+                                <label for="CardNumber" class="required">Card Number</label>
+                                <input type="text" class="form-control" id="CardNumber" key="CardNumber" required readonly value="1234 1234 1234 1234">
+                            </div>
+                            <div class="form-group">
+                                <label for="Expiry" class="required">Expires on</label>
+                                <input type="month" class="form-control" id="Expiry" key="Expiry" required readonly>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-secondary" id="checkout-trigger">Back</button>
+                                <button type="button" class="btn btn-primary" id="place-order">Place Order</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div id="step3-preview" hidden>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADER -->
+    <div class="loader-div flexColumn" hidden>
+        <img src="./images/loader.gif" alt="Loader" id="loader-gif">
+    </div>
+</body>
+
+</html>
+<!-- End of The Document -->
+
+<!-- Popper js for some bootstrap functionalities -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.4.4/umd/popper.min.js"></script>
+
+<!-- Bootstrap JS -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- Custom JS file for all our custom functions -->
+<script src="api.js"></script>
+<script src="./js/index.js"></script>
