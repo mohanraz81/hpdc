@@ -1,0 +1,178 @@
+---
+Description:  This template deploys a selected OS Environment
+
+Parameters:
+  NetworkStackName:
+    Description: Name of the base stack with all infra resources
+    Type: String
+    Default: VPC
+  
+  InstanceType:
+    Description: Choose EC2/VM instance type
+    Type: String
+    Default: t3.micro
+    
+  
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: String
+    Default: ecommkey
+   
+  VPCID:
+    Description: Mention VPC ID of the VPC from Networkstack
+    Type: String
+    Default: VPCID
+  
+  SubnetId:
+    Description: Select a Subnet for EC2 instance
+    Type: String
+    Default: PublicSubnet1ID
+
+  OS:
+    Description: Choose OS
+    Type: String
+    Default: AmazonLinux2
+   
+
+Mappings:
+  Ops:
+    us-east-1:
+      Ubuntu: ami-06b263d6ceff0b3dd
+      CentOS: ami-0affd4508a5d2481b
+      AmazonLinux2: ami-0c94855ba95c71c99
+    us-east-2:
+      Ubuntu: ami-0010d386b82bc06f0
+      CentOS: ami-01e36b7901e884a10
+      AmazonLinux2: ami-0603cbe34fd08cb81
+    us-west-1:
+      Ubuntu: ami-0b33356b362c56df5
+      CentOS: ami-098f55b4287a885ba
+      AmazonLinux2: ami-0e65ed16c9bf1abc7
+    us-west-2:
+      Ubuntu: ami-0ba60995c1589da9d
+      CentOS: ami-0bc06212a56393ee1
+      AmazonLinux2: ami-01ce4793a2f45922e
+    ap-south-1:
+      Ubuntu: ami-0e9182bc6494264a4
+      CentOS: ami-026f33d38b6410e30
+      AmazonLinux2: ami-09a7bbd08886aafdf
+    ap-southeast-1:
+      Ubuntu: ami-0b44582c8c5b24a49
+      CentOS: ami-07f65177cb990d65b
+      AmazonLinux2: ami-0b1e534a4ff9019e0  
+  
+Resources:
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: 
+        Fn::Sub: ${AWS::StackName}-SG
+      GroupDescription: Allow http to client host
+      VpcId:
+        Ref: VPCID
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+  
+  DevEnvRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Principal: 
+              Service: 
+                - "ec2.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      RoleName:
+        Fn::Sub: ${AWS::StackName}-DevEnvRole
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+        
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles: 
+        - !Ref DevEnvRole
+  
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        InstanceType:
+          Ref: InstanceType
+        DisableApiTermination: 'true'
+        KeyName: !Ref KeyName
+        ImageId: !FindInMap [Ops, !Ref "AWS::Region", !Ref OS]
+        SecurityGroupIds:
+        - !Ref SecurityGroup
+        IamInstanceProfile:
+          Name:
+            Ref: EC2InstanceProfile
+        UserData:
+          Fn::Base64:
+            !Sub |
+              #!/bin/bash
+              sudo yum -y install git curl wget httpd  python python-pip mod_wsgi.x86_64
+              sudo pip install flask boto3 ec2-metadata
+              git clone https://github.com/mohanraz81/pythonproject.git
+              sudo echo '200 Ok' |sudo tee /var/www/html/status.html
+              sudo echo 'export TableName=producttable' |sudo tee /etc/environment
+              sudo cp -R pythonproject/frontend/code/* /var/www
+              sudo cp pythonproject/frontend/config/archeplay.conf /etc/httpd/conf.d/archeplay.conf
+              sudo systemctl start httpd
+              sudo systemctl enable httpd
+
+      LaunchTemplateName: 
+        Fn::Sub: ${AWS::StackName}-LaunchTemplate
+        
+    
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      SubnetId: 
+        Ref: SubnetId
+      LaunchTemplate: 
+        LaunchTemplateId: 
+          Ref: LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      Tags:
+        - Key: Name
+          Value:
+            Fn::Sub: ${AWS::StackName}-${OS}
+    
+
+
+Outputs:
+  SecurityGroupId:
+    Description: Security group with ssh http https rdp ingress rule
+    Value:
+      Ref: SecurityGroup
+  
+  EC2InstanceId:
+    Description: Instance id of EC2
+    Value:
+      Ref: EC2Instance
+  
+  EC2PrivateIP:
+    Description: Instance name of EC2
+    Value:
+      Fn::GetAtt: EC2Instance.PrivateIp
+      
+  EC2PrivateDNS:
+    Description: PublicDNS 
+    Value:
+      Fn::GetAtt: EC2Instance.PrivateDnsName
+  
+  DevEnvRoleName:
+    Description: Role Name of Development Environment Role
+    Value: !Ref DevEnvRole

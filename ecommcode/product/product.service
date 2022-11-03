@@ -1,0 +1,11 @@
+[Unit]
+Description=Start the product
+After=docker.target
+
+[Service]
+Type=simple
+ExecStart=/bin/docker-compose  -f /archeplay-ecomm-demo/product/docker-compose.yaml up -d
+TimeoutStartSec=0
+
+[Install]
+WantedBy=default.target

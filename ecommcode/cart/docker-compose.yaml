@@ -1,0 +1,26 @@
+---
+version: "3.7"
+services:
+  cart-proxy:
+    build:
+      context: ./nginx
+    image: cart-proxy
+    depends_on:
+      - cart-api
+    ports:
+      - "80:80"
+    environment:
+      MYSQL_HOST: cart-db
+      MYSQL_DATABASE: cartdb
+      MYSQL_USER: dbusername
+      MYSQL_PASSWORD: dbpassword
+  cart-api:
+    build:
+      context: .
+    image: cart-api
+    environment:
+      MYSQL_HOST: cart-db
+      MYSQL_DATABASE: cartdb
+      MYSQL_USER: dbusername
+      MYSQL_PASSWORD: dbpassword
+  

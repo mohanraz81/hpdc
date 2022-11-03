@@ -1,0 +1,18 @@
+---
+version: "3.7"
+services:
+  product-api:
+    build:
+      context: .
+    image: product-api
+    environment:
+      AWS_REGION: us-east-2
+      TABLE_NAME: productdb
+  product-proxy:
+    build:
+      context: ./nginx
+    depends_on:
+      - product-api
+    image: productproxy
+    ports:
+      - "9090:80"

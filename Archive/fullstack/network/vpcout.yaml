@@ -1,0 +1,5 @@
+vpcid: "vpc-0286d15e9ee37f3ec"
+publicsn1: "subnet-0b3d3e3bb721adf93"
+publicsn2: "subnet-02884c495efa7c38a"
+privatesn1: "subnet-00ee0d7eef5c331d8"
+privatesn2: "subnet-080a56c823a4e98e7"

@@ -1,0 +1,179 @@
+Parameters:
+  VPCID:
+    Description: Give VPC ID of the network Stack
+    Type: String
+
+  PublicSubnet1ID:
+    Description: Give one of the Public subnet IDs of the network Stack
+    Type: String
+  
+  PublicSubnet2ID:
+    Description: Give one of the Public subnet IDs of the network Stack (different from what mentioned above)
+    Type: String
+
+  LoadBalancerHealthCheckIntervalSeconds:
+    Description: Select HealthCheck interval in seconds for LoadBalancer
+    Type: Number
+    Default: 10
+  
+  LoadBalancerHealthCheckPath:
+    Description: Select HealthCheck path for LoadBalancer
+    Type: String
+    Default: /
+  
+  InstancePort:
+    Description: Select the InstancePort that application is running. Should be value from 1 to 65535
+    Type: Number
+    Default: 80
+
+  InstanceProtocol:
+    Description: Select HealthCheck protocol for LoadBalancer
+    Type: String
+    Default: HTTP
+
+  LoadBalancerHealthCheckTimeoutSeconds:
+    Description: Select HealthCheck timeout in seconds for LoadBalancer. Member must have value less than or equal to 120 and must be smaller than the interval
+    Type: Number
+    Default: 5
+  
+  LoadBalancerHealthyThresholdCount:
+    Description: Select Healthy Threshold Count for LoadBalancer
+    Type: Number
+    Default: 3
+  
+  LoadBalancerUnhealthyThresholdCount:
+    Description: Select Unhealthy Threshold Count for LoadBalancer
+    Type: Number
+    Default: 2
+  TargetGroupName:
+    Description: Name of LoadBalancer TargetGroup
+    Type: String
+    Default: ecommtg
+
+Resources:
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Metadata:
+      Description: Security Group for the LoadBalancer with 443 ports open to internet.
+    Properties:
+      GroupDescription: Allow http to client host
+      VpcId: 
+        Ref: VPCID
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 0.0.0.0/0
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Metadata:
+      Description: SecurityGroup for the Instance SG with access only from the load balancer's security group.
+    Properties:
+      GroupDescription: Allow http to client host
+      VpcId:
+        Ref: VPCID
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort:
+          Ref: InstancePort
+        ToPort:
+          Ref: InstancePort
+        SourceSecurityGroupId:
+          Ref: LoadBalancerSecurityGroup
+
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Metadata:
+      Description: An Application LoadBalancer deployed on a public subnet which can route traffic to public subnets.
+    Properties: 
+      Name: 
+        Fn::Sub: "${AWS::StackName}"
+      Scheme: internet-facing
+      SecurityGroups: 
+        - !Ref LoadBalancerSecurityGroup
+      Subnets: 
+        - 
+          Ref: PublicSubnet1ID
+        - 
+          Ref: PublicSubnet2ID
+      Tags: 
+        - Key: Name
+          Value: 
+            Fn::Sub: "${AWS::StackName}"
+      Type: application
+
+  ApplicationLoadBalancerTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Metadata:
+      Description: Application LoadBalancer's TargetGroup added with instance health checks.
+    Properties: 
+      HealthCheckEnabled: True
+      HealthCheckIntervalSeconds:
+        Ref: LoadBalancerHealthCheckIntervalSeconds
+      HealthCheckPath:
+        Ref: LoadBalancerHealthCheckPath
+      HealthCheckPort:
+        Ref: InstancePort
+      HealthCheckProtocol:
+        Ref: InstanceProtocol
+      HealthCheckTimeoutSeconds:
+        Ref: LoadBalancerHealthCheckTimeoutSeconds
+      HealthyThresholdCount:
+        Ref: LoadBalancerHealthyThresholdCount
+      UnhealthyThresholdCount:
+        Ref: LoadBalancerUnhealthyThresholdCount
+      Name:
+        Ref: TargetGroupName
+      Port: 80
+      Protocol: HTTP
+      Tags: 
+        - Key: Name
+          Value: 
+            Fn::Sub: "${AWS::StackName}-TG"
+      TargetType: instance
+      VpcId:
+        Ref: VPCID
+
+  ApplicationLoadBalancerListerner:  
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Metadata:
+      Description: An Application LoadBalancer's Listener with https protocol and TLS Certificate.
+    Properties: 
+      DefaultActions: 
+        - 
+          TargetGroupArn:
+            Ref: ApplicationLoadBalancerTargetGroup
+          Type: forward
+      LoadBalancerArn:
+        Ref: ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+Outputs:
+  LoadBalancerSecurityGroup:
+    Description: Security group with ssh http https rdp ingress rule
+    Value: !Ref LoadBalancerSecurityGroup
+  
+  InstanceSecurityGroup:
+    Description: Security group with ssh http https rdp ingress rule
+    Value: !Ref InstanceSecurityGroup
+  
+  ApplicationLoadBalancer:
+    Description: A reference to the ApplicationLoadBalancer
+    Value : !Ref ApplicationLoadBalancer
+
+  ApplicationLoadBalancerTargetGroup:
+    Description: A reference to the ApplicationLoadBalancer
+    Value : !Ref ApplicationLoadBalancerTargetGroup
+  LoadBalancerDNS:
+    Description: DNS Name of LoadBalancer
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+
+  LoadBalancerFullName:
+    Description: Protocol of LoadBalancer
+    Value: !GetAtt ApplicationLoadBalancer.LoadBalancerFullName
+  

@@ -1,0 +1,118 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: This template deploys the DynamoDB table.
+
+Metadata:
+  Architecture:
+    - Title: DynamoDB-Table
+      Image: productapiasg-productdbdyndb
+      Description: Architecture for DynamoDB Table.
+    
+    - Title: Deployment Sequence
+      Image: environment-deployment-sequence
+      Description: Sequence of environment deployment for e-commerce application
+      
+Parameters:
+  AttName:
+    Description: Give Primary Key name for DynamoDB table.
+    Type: String
+    Default: id
+    
+  AttType:
+    Type: String
+    Description: Select Attribute Type for the Primary Key.
+    Default: S
+    
+  TableName:
+    Description: Give Name for the DynamoDB table.
+    Type: String 
+    Default: producttable
+    
+
+Resources: 
+  DynamodbpolicyRW:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Metadata:
+      Description: Policy for Full access of this DynamoDB Table which can be attached to any Role as per users need for 
+        accessing this DynamoDB Table.
+    Properties:
+      ManagedPolicyName: 
+        Fn::Sub: "${AWS::StackName}-RW" 
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - "dynamodb:*Item*"
+              - "dynamodb:Scan"
+              - "dynamodb:Query"
+              - "dynamodb:List*"
+              - "dynamodb:Get*"
+              - "dynamodb:Describe*"
+            Resource: 
+              - Fn::Sub: 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TableName}-${AWS::StackName}'
+              - Fn::Sub: 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TableName}-${AWS::StackName}/index/*'
+        
+  DynamodbpolicyRO:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Metadata:
+      Description: Policy for read only access to this DynamoDB table which can be attached to any Role as per users need for 
+        accessing this DynamoDB Table.
+    Properties:
+      ManagedPolicyName: 
+        Fn::Sub: "${AWS::StackName}-RO" 
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - "dynamodb:List*"
+              - "dynamodb:Get*"
+              - "dynamodb:Describe*"
+              - "dynamodb:Scan"
+              - "dynamodb:Query"
+              - "dynamodb:BatchGetItem"
+              - "dynamodb:ConditionCheckItem"
+            Resource: 
+              - Fn::Sub: 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TableName}-${AWS::StackName}'
+              - Fn::Sub: 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TableName}-${AWS::StackName}/index/*'
+        
+  DynamoDBTable: 
+    Type: "AWS::DynamoDB::Table"
+    Metadata:
+      Description: A DynamoDB Table will be deployed with a primary key you have given.
+    Properties: 
+      AttributeDefinitions: 
+        - 
+          AttributeName:
+            Ref: AttName
+          AttributeType:
+            Ref: AttType
+
+      KeySchema: 
+        - 
+          AttributeName: 
+            Ref: AttName
+          KeyType: HASH
+  
+      ProvisionedThroughput: 
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TableName: 
+        Fn::Sub: "${TableName}"
+
+Outputs:
+  DynamoDBTable:
+    Description: A reference to the DynamoDB table got deployed.
+    Value: 
+      Ref: DynamoDBTable
+  DynamodbpolicyRW:
+    Description: Policy name for accessing DynamoDB table with full access permission.
+    Value:
+      Ref: DynamodbpolicyRW 
+  DynamodbpolicyRO:
+    Description: Policy name for read only access to this DynamoDB table.
+    Value:
+      Ref: DynamodbpolicyRO 
+  
+  

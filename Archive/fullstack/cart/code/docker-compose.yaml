@@ -1,0 +1,35 @@
+---
+version: "3.7"
+services:
+  cart-proxy:
+    build:
+      context: ./proxy
+    image: mohanraz81/cart-proxy
+    depends_on:
+      - cart-api
+    ports:
+      - "80:80"
+    environment:
+      MYSQL_HOST: cart-db
+      MYSQL_DATABASE: cartdb
+      MYSQL_USER: dbusername
+      MYSQL_PASSWORD: dbpassword
+  cart-api:
+    build:
+      context: ./api
+    ports:
+      - "5000:5000"
+    image: mohanraz81/cart-api
+    environment:
+      MYSQL_HOST: cart-db
+      MYSQL_DATABASE: cartdb
+      MYSQL_USER: dbusername
+      MYSQL_PASSWORD: dbpassword
+  cart-db:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: admin123
+      MYSQL_DATABASE: cartdb
+      MYSQL_USER: dbusername
+      MYSQL_PASSWORD: dbpassword
+  

@@ -1,0 +1,42 @@
+.prod-img {
+    height: 225px;
+}
+
+.prod-title p {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.prod-id p {
+    font-size: 0.9rem;
+}
+
+/* .to-cart, .view-prod {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+} */
+
+#my-cart {
+    border-radius: .25rem;
+}
+
+.prod-img img {
+    width: 50%;
+}
+
+img[alt="Casio_Enticer_Silver"] {
+    width: 35%;
+}
+
+img[alt="fossil_smartwatch_gen4"] {
+    width: 42%;
+}
+
+.pointer{
+    cursor: pointer;
+}
+
+.each-prod:hover{
+    box-shadow: 0 0 5px 5px lightgrey!important;
+}

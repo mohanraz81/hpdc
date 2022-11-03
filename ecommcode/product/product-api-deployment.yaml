@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.26.0 (40646f47)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: product-api
+  name: product-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: product-api
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.26.0 (40646f47)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: product-api
+    spec:
+      containers:
+        - image: mohanraz81/product-proxy
+          name: product-proxy
+          ports:
+            - containerPort: 80
+          resources: {}
+        - env:
+            - name: AWS_REGION
+              value: us-east-2
+            - name: TABLE_NAME
+              value: productdb
+          image: mohanraz81/product-api
+          name: product-api
+          resources: {}
+      restartPolicy: Always
+status: {}

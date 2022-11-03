@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: ecomm-fe
+  name: ecomm-fe
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      io.kompose.service: ecomm-fe
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        io.kompose.service: ecomm-fe
+    spec:
+      containers:
+        - image: DOCKERID/ecomm-fe
+          name: ecomm-fe
+          ports:
+            - containerPort: 80
+          resources: {}
+      restartPolicy: Always
+status: {}

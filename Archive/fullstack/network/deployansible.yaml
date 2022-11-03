@@ -1,0 +1,21 @@
+---
+- name: deploy the hpdc lab
+  hosts: localhost
+  tasks:
+  - name: launch a vpc
+    cloudformation:
+      stack_name: "vpc"
+      state: "present"
+      region: "us-east-1"
+      disable_rollback: true
+      template: "vpc.yaml"
+    register: vpcout
+  - copy:
+      content: |
+        vpcid: "{{vpcout.stack_outputs.VPCID}}"
+        publicsn1: "{{vpcout.stack_outputs.PublicSubnet1ID}}"
+        publicsn2: "{{vpcout.stack_outputs.PublicSubnet2ID}}"
+        privatesn1: "{{vpcout.stack_outputs.PrivateSubnet1ID}}"
+        privatesn2: "{{vpcout.stack_outputs.PrivateSubnet2ID}}"
+      dest: vpcout.yaml
+     

@@ -1,0 +1,69 @@
+---
+apiVersion: apps/v1
+# Kind Denotes it is calling Deployment API
+kind: Deployment
+metadata:
+  name: ecomm-app
+  namespace: ecomm
+spec:
+  selector:
+    matchLabels: 
+      app: ecomm
+      tier: app
+  replicas: 2
+  minReadySeconds: 5
+  progressDeadlineSeconds: 300
+  revisionHistoryLimit: 5
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template: 
+    metadata:
+      labels:
+        app: ecomm
+        tier: app
+    spec:
+      containers:
+      - name: cartapi
+        image: mohanraz81/cart-api
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+        resources:
+          limits:
+            cpu: "0.3"
+            memory: "300Mi"
+          requests:
+            cpu: "0.2"
+            memory: "200Mi"
+        env:
+          - name: "MYSQL_HOST"
+            value: "cart-db"
+          - name: "MYSQL_DATABASE"
+            value: "cartdb"
+          - name: "MYSQL_USER"
+            value: "dbusername"
+          - name: "MYSQL_PASSWORD"
+            value: "dbpassword"
+      - name: cartproxy
+        image: mohanraz81/cart-proxy
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            cpu: "0.3"
+            memory: "300Mi"
+          requests:
+            cpu: "0.2"
+            memory: "200Mi"
+        env:
+          - name: "MYSQL_HOST"
+            value: "cart-db"
+          - name: "MYSQL_DATABASE"
+            value: "cartdb"
+          - name: "MYSQL_USER"
+            value: "dbusername"
+          - name: "MYSQL_PASSWORD"
+            value: "dbpassword"

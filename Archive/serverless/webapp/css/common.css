@@ -1,0 +1,156 @@
+@font-face {
+    font-family: 'cabin-regular';
+    src: url(../Fonts/Cabin-Regular.ttf);
+}
+
+@font-face {
+    font-family: 'alpha';
+    src: url(../Fonts/Alpha-Medium.otf);
+}
+
+body {
+    font-family: 'cabin-regular';
+    /* overflow: hidden; */
+}
+
+ul, p {
+    padding: 0;
+    margin: 0;
+}
+
+li {
+    list-style: none;
+}
+
+header {
+    position: fixed;
+    height: 50px;
+    width: 100%;
+    top: 0;
+    left: 0;
+    background-color: white;
+    box-shadow: 0px 0px 5px 0px grey;
+    /* border-bottom: 1px solid; */
+    z-index: 1000;
+}
+
+main {
+    margin-top: 50px;
+    height: calc(100% - 85px);
+    width: 100%;
+    /* overflow: auto; */
+    margin-bottom: 35px;
+}
+
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    background-color: black;
+    color: white;
+    height: 35px;
+    width: 100%;
+}
+
+header>div {
+    padding: 0 10px !important;
+    width: 100%;
+    align-items: center;
+    height: 100%;
+    justify-content: space-between;
+}
+
+img[alt="Archeplay"] {
+    width: 180px;
+    height: 32px;
+}
+
+button:focus {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.flexRow {
+    display: flex;
+}
+
+.flexColumn {
+    display: flex;
+    flex-direction: column;
+}
+
+.loader-div {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 123456789;
+    background-color: #80808063;
+}
+
+#loader-gif {
+    width: 3.5rem;
+    margin: auto;
+}
+
+.toast {
+    font-weight: bold;
+    color: white;
+    z-index: 1000;
+    left: auto;
+    right: 50%;
+    top: 5%;
+    display: none;
+}
+
+.toast-header {
+    color: #28333d !important;
+}
+
+.toast-error {
+    background-color: #fc5a5a !important;
+}
+
+.toast-success {
+    background-color: #4CAF50 !important;
+}
+
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+/* Track */
+
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px #afafaf;
+    box-shadow: inset 0 0 6px #afafaf;
+    /* -webkit-border-radius: 10px; */
+    /* border-radius: 10px; */
+}
+
+/* Handle */
+
+::-webkit-scrollbar-thumb {
+    /* -webkit-border-radius: 10px; */
+    /* border-radius: 10px; */
+    background: #78c3ff;
+    -webkit-box-shadow: inset 0 0 6px #004175;
+    box-shadow: inset 0 0 6px #004175;
+}
+
+.fixed {
+    position: fixed;
+}
+
+.max-width {
+    max-width: 100rem;
+    margin: auto;
+    padding: 1rem 70px;
+}
+
+.btn {
+    height: fit-content;
+    /* background-color: #343434; */
+    border: none;
+}
