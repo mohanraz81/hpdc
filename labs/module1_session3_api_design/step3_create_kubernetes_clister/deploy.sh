@@ -21,4 +21,3 @@ eksctl create cluster \
 --nodes-max 3 \
 --node-volume-size=30 \
 --managed
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-0.32.0/deploy/static/provider/aws/deploy.yaml
