@@ -2,15 +2,17 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: product-ingress
+  # annotations:
+    # nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   ingressClassName: nginx-example
   rules:
   - http:
       paths:
-      - path: /product/v1
-        pathType: Prefix
+      - path: /product/v1/status
+        pathType: Exact
         backend:
           service:
             name: product-api
-            port:
+            port: 
               number: 9090

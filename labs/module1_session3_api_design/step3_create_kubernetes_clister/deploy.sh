@@ -12,7 +12,7 @@ sudo mv ./kubectl /usr/local/bin
 export AWS_DEFAULT_REGION=us-east-1
 eksctl create cluster \
 --region us-east-1 \
---name prod \
+--name prod1 \
 --nodegroup-name standard-workers \
 --node-type t3a.medium \
 --zones=us-east-1a,us-east-1b,us-east-1c \

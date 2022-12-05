@@ -1,0 +1,135 @@
+<!-- This will refer the type of the document -->
+<!DOCTYPE html>
+
+<!-- Start of the Document -->
+<html lang="en">
+
+<!-- In this we will be using Jquery(3.5.1) library for the javascript functionalities and Bootstrap(4.5) for UI framework and we will be using our custom CSS file and JS file, index.css and index.js respectively. We are using more bootstrap class names that you can see in every html tag in "class" attribute-->
+
+<!-- Start of Head tag -->
+
+<head>
+    <!-- Default meta tags for HTML:5 https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta check this link for further information -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Title of the HTML page that you will see in the browser tab -->
+    <title>Archeplay - Products</title>
+
+    <!-- Jquery CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- Bootstrap is an UI framework that is mainly used when we are using Jquery. check for https://getbootstrap.com/docs/4.5/getting-started/introduction/ for further information about bootstrap -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+
+    <!-- this will depicts the icon in top tab that you will see in the browser -->
+    <link rel="icon" type="image/png" sizes="16x16" href="./images/fevicon.png">
+
+    <!-- Integrating CSS file -->
+    <link rel="stylesheet" href="./css/common.css" />
+    <link rel="stylesheet" href="./css/index.css" />
+</head>
+<!-- End of Head Tag -->
+
+<!-- Start of Body Tag -->
+
+<body>
+    <!-- Header of the page -->
+    <header>
+        <div class="max-width d-flex flex-row">
+            <div>
+                <img alt="Archeplay" src="./images/Ap_logo_1.png" />
+            </div>
+            <div>
+                <div class="d-flex align-items-center bg-secondary text-white p-2 pointer" id="my-cart">
+                    <span class="material-icons">
+                        shopping_cart
+                    </span>
+                    <span class="ml-1">
+                        My Cart&nbsp;&nbsp;
+                    </span>
+                    <span class="badge badge-light" id="my-cart-count">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Section -->
+    <main>
+        <section class="p-4 main-blk max-width" id="prod-sec" hidden>
+            <div class="row flex-wrap m-0" id="prd-blk">
+
+            </div>
+        </section>
+        <section class="p-4 max-width" id="my-cart-sec" hidden>
+            <div class="row m-0">
+                <div class="mb-4 col-11 p-0 d-flex justify-content-between">
+                    <p class="h3 text-primary font-weight-bold">Shopping Cart</p>
+                    <div class="d-flex bg-success text-white align-items-center p-2 pl-4 pr-4 pointer" id="checkout-trigger">
+                        <span>Proceed to Checkout&nbsp;&nbsp;</span>
+                        <span class="material-icons">
+                            arrow_right_alt
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="" id="mycart-blk">
+
+            </div>
+        </section>
+        <section class="p-4 max-width" id="cur-prod-sec" hidden>
+            <div class="" id="cur-prod-blk">
+
+            </div>
+        </section>
+        <section class="p-4 max-width" id="checkout-sec" hidden>
+            <div class="" id="checkout-blk">
+
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer for tha page -->
+    <footer>
+        <div class="d-flex flex-row align-items-center justify-content-center w-100 h-100">
+            <h6 class="m-0 copyright" style="font-size: smaller;">
+            </h6>
+        </div>
+    </footer>
+
+
+    <!-- For Displaying Messages -->
+    <div class="toast fixed" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false"
+        data-delay="7000" data-animation="true">
+        <div class="toast-header">
+            <strong class="mr-auto">Message</strong>
+            <button type="button" class="ml-2 mb-1 close-toast" data-dismiss="toast" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="toast-body">
+
+        </div>
+    </div>
+
+    <!-- LOADER -->
+    <div class="loader-div flexColumn" hidden>
+        <img src="./images/loader.gif" alt="Loader" id="loader-gif">
+    </div>
+</body>
+
+</html>
+<!-- End of The Document -->
+
+<!-- Popper js for some bootstrap functionalities -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.4.4/umd/popper.min.js"></script>
+
+<!-- Bootstrap JS -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- Custom JS file for all our custom functions -->
+<script src="api.js"></script>
+<script src="./js/index.js"></script>
