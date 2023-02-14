@@ -1,0 +1,35 @@
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mycart-rq
+  namespace: mycart
+spec:
+  hard: 
+    requests.cpu: "5"
+    requests.memory: 5Gi
+    limits.cpu: "10"
+    limits.memory: 10Gi
+    pods: "10"
+    count/deployments.extensions: "10"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mycart-lr
+  namespace: mycart
+spec:
+  limits:
+  - default:
+      cpu: "800m"
+      memory: "800Mi"
+    defaultRequest:
+      cpu: "800m"
+      memory: "800Mi"
+    max:
+      cpu: "800m"
+      memory: "800Mi"
+    min:
+      cpu: "200m"
+      memory: "200Mi"
+    type: Container

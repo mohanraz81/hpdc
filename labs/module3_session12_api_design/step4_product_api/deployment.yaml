@@ -23,7 +23,7 @@ spec:
           resources: {}
         - env:
             - name: AWS_REGION
-              value: us-east-2
+              value: us-east-1
             - name: TABLE_NAME
               value: productdb
           image: mohanraz81/product-api
