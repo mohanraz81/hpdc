@@ -1,17 +1,14 @@
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
 metadata:
-  name: product-ingress
+  name: product-hpa
   namespace: product
 spec:
-  ingressClassName: nginx
-  rules:
-  - http:
-      paths:
-      - path: /product/v1
-        pathType: Prefix
-        backend:
-          service:
-            name: product-api
-            port:
-              number: 80
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: product-api
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 20
