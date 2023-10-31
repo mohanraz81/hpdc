@@ -4,7 +4,7 @@ metadata:
   name: product-ingress
   namespace: product
 spec:
-  ingressClassName: nginx-example
+  ingressClassName: nginx
   rules:
   - http:
       paths:
@@ -14,4 +14,4 @@ spec:
           service:
             name: product-api
             port:
-              number: 9090
+              number: 80
