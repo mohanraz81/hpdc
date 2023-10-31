@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   labels:
     io.kompose.service: product-api
+    namespace: product
   name: product-api
 spec:
   replicas: 2
