@@ -3,6 +3,7 @@ kind: Service
 metadata:
   labels:
     io.kompose.service: product-proxy
+    namespace: product
   name: product-api
 spec:
   ports:
