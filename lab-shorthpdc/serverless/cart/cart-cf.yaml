@@ -1,0 +1,372 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create a DynamoDB table with on-demand capacity, Lambda function, and API Gateway.
+
+Resources:
+  CartTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties: 
+      TableName: "carttable"
+      AttributeDefinitions:
+        - AttributeName: "userid"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "userid"
+          KeyType: "HASH"
+      BillingMode: "PAY_PER_REQUEST"
+
+  CartLambdaExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: "CartLambdaExecutionRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "LambdaDynamoDBAccess"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "dynamodb:PutItem"
+                  - "dynamodb:GetItem"
+                  - "dynamodb:UpdateItem"
+                  - "dynamodb:DeleteItem"
+                Resource: !GetAtt CartTable.Arn
+
+  addtocart:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName: "addtocart"
+      Handler: "index.lambda_handler"
+      Role: !GetAtt CartLambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+          def lambda_handler(event, context):
+              # Extract request data from the event
+              print(event)
+              # user_id = event['userid']
+              # cart_items = event['cartitems']
+              TableName = 'carttable'
+              dynamodb=boto3.resource('dynamodb',region_name='us-east-1')
+              table=dynamodb.Table(TableName)
+              # Update the user's cart in DynamoDB
+            
+              response=table.put_item(Item=json.loads(event['body']))
+              if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                  return {
+                      'statusCode': 200,
+                      'body': json.dumps({'message': 'Cart updated successfully'}),
+                      'headers': {
+                          'Content-Type': 'application/json'
+                      }
+                  }
+              else:
+                  return {
+                      'statusCode': 500,
+                      'body': json.dumps({'message': 'Internal server error'}),
+                      'headers': {
+                          'Content-Type': 'application/json'
+                      }
+                  }
+      Runtime: "python3.8"
+      Timeout: 10
+      MemorySize: 256
+
+  updatecart:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName: "updatecart"
+      Handler: "index.lambda_handler"
+      Role: !GetAtt CartLambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+
+          def lambda_handler(event, context):
+              # Parse the input data from the event
+              body = json.loads(event['body'])
+              user_id = body['userid']
+              product_id = body['productId']
+              new_quantity = body['quantity']
+
+              # Initialize the DynamoDB client
+              dynamodb = boto3.resource('dynamodb')
+              table_name = 'carttable'
+              table = dynamodb.Table(table_name)
+
+              # Update cart item quantity
+              try:
+                  table.update_item(
+                      Key={'userid': user_id },
+                      UpdateExpression="SET quantity = :qty, productId = :pid",
+                      ExpressionAttributeValues={':qty': new_quantity, ':pid': product_id}
+                  )
+                  response = {
+                      "statusCode": 200,
+                      "body": json.dumps("Cart item quantity updated successfully.")
+                  }
+              except Exception as e:
+                  response = {
+                      "statusCode": 500,
+                      "body": json.dumps(f"Error: {str(e)}")
+                  }
+
+              return response
+      Runtime: "python3.8"
+      Timeout: 10
+      MemorySize: 256
+  getcart:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName: "getcart"
+      Handler: "index.lambda_handler"
+      Role: !GetAtt CartLambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+          import decimal
+          class DecimalEncoder(json.JSONEncoder):
+              def default(self, o):
+                  if isinstance(o, decimal.Decimal):
+                      if o % 1 > 0:
+                          return float(o)
+                      else:
+                          return int(o)
+                  return super(DecimalEncoder, self).default(o)
+          def lambda_handler(event, context):
+              #print(event)
+              #Parse the input data from the event
+              user_id = event['queryStringParameters']['userid']
+
+              # Initialize the DynamoDB client
+              dynamodb = boto3.resource('dynamodb')
+              table_name = 'carttable'
+              table = dynamodb.Table(table_name)
+
+              # Query DynamoDB to get cart items for the user
+          # Query the table for items where the UserId matches the provided UserId
+
+              output = table.get_item(Key={"userid": user_id})
+              outputjson = json.loads(json.dumps(output,cls=DecimalEncoder))
+              
+
+              if 'Item' in outputjson:
+                  response = {
+                  'statusCode': 200,
+                  'headers': {
+                      'Content-Type': 'application/json',
+                      'Access-Control-Allow-Origin': '*'
+                  },
+                  'body': json.dumps(outputjson['Item']),
+                  "isBase64Encoded": False
+                  }
+              else:
+                  response = {
+                      "status": 404,
+                      "body": "Cart is empty for this user."
+                  }
+              return response
+      Runtime: "python3.8"
+      Timeout: 10
+      MemorySize: 256
+  deletecart:
+      Type: "AWS::Lambda::Function"
+      Properties:
+        FunctionName: "deletecart"
+        Handler: "index.lambda_handler"
+        Role: !GetAtt CartLambdaExecutionRole.Arn
+        Code:
+          ZipFile: |
+            import json
+            import boto3
+            import decimal
+            class DecimalEncoder(json.JSONEncoder):
+                def default(self, o):
+                    if isinstance(o, decimal.Decimal):
+                        if o % 1 > 0:
+                            return float(o)
+                        else:
+                            return int(o)
+                    return super(DecimalEncoder, self).default(o)
+            def lambda_handler(event, context):
+                #print(event)
+                #Parse the input data from the event
+                user_id = event['queryStringParameters']['userid']
+
+                # Initialize the DynamoDB client
+                dynamodb = boto3.resource('dynamodb')
+                table_name = 'carttable'
+                table = dynamodb.Table(table_name)
+
+
+                # Delete the cart item
+                try:
+                    table.delete_item(
+                        Key={'userid': user_id}
+                    )
+                    response = {
+                    'statusCode': 200,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'body': json.dumps("Item Deleted Successfully"),
+                    "isBase64Encoded": False
+                    }
+                except Exception as e:
+                    response = {
+                        "statusCode": 500,
+                        "body": json.dumps(f"Error: {str(e)}")
+                    }
+
+                return response
+
+        Runtime: "python3.8"
+        Timeout: 10
+        MemorySize: 256
+  CartApiGateway:
+    Type: "AWS::ApiGateway::RestApi"
+    Properties:
+      Name: "CartApiGateway"
+
+  AddToCartLambdaPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt addtocart.Arn
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${CartApiGateway}/*"
+  GetCartLambdaPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt getcart.Arn
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${CartApiGateway}/*"
+  UpdateCartLambdaPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt updatecart.Arn
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${CartApiGateway}/*"
+  DeleteCartLambdaPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt deletecart.Arn
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${CartApiGateway}/*" 
+
+  AddToCartApiResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !GetAtt CartApiGateway.RootResourceId
+      PathPart: "addtocart"
+      RestApiId: !Ref CartApiGateway
+  GetCartApiResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !GetAtt CartApiGateway.RootResourceId
+      PathPart: "getcart"
+      RestApiId: !Ref CartApiGateway
+  UpdateCartApiResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !GetAtt CartApiGateway.RootResourceId
+      PathPart: "updatecart"
+      RestApiId: !Ref CartApiGateway
+  DeleteCartApiResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !GetAtt CartApiGateway.RootResourceId
+      PathPart: "deletecart"
+      RestApiId: !Ref CartApiGateway
+  AddToCartApiMethod:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref CartApiGateway
+      ResourceId: !Ref AddToCartApiResource
+      HttpMethod: "POST"
+      AuthorizationType: "NONE"
+      Integration:
+        IntegrationHttpMethod: "POST"
+        Type: "AWS_PROXY"
+        Uri: !Sub
+          - "arn:aws:apigateway:${Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
+          - {
+              Region: !Ref "AWS::Region",
+              LambdaArn: !GetAtt addtocart.Arn
+            }
+  UpdateCartApiMethod:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref CartApiGateway
+      ResourceId: !Ref UpdateCartApiResource
+      HttpMethod: "PUT"
+      AuthorizationType: "NONE"
+      Integration:
+        IntegrationHttpMethod: "POST"
+        Type: "AWS_PROXY"
+        Uri: !Sub
+          - "arn:aws:apigateway:${Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
+          - {
+              Region: !Ref "AWS::Region",
+              LambdaArn: !GetAtt updatecart.Arn
+            }
+  GetCartApiMethod:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref CartApiGateway
+      ResourceId: !Ref GetCartApiResource
+      HttpMethod: "GET"
+      AuthorizationType: "NONE"
+      Integration:
+        IntegrationHttpMethod: "POST"
+        Type: "AWS_PROXY"
+        Uri: !Sub
+          - "arn:aws:apigateway:${Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
+          - {
+              Region: !Ref "AWS::Region",
+              LambdaArn: !GetAtt getcart.Arn
+            }
+  DeleteCartApiMethod:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref CartApiGateway
+      ResourceId: !Ref DeleteCartApiResource
+      HttpMethod: "DELETE"
+      AuthorizationType: "NONE"
+      Integration:
+        IntegrationHttpMethod: "POST"
+        Type: "AWS_PROXY"
+        Uri: !Sub
+          - "arn:aws:apigateway:${Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
+          - {
+              Region: !Ref "AWS::Region",
+              LambdaArn: !GetAtt deletecart.Arn
+            }
+  CartApiDeployment:
+    Type: "AWS::ApiGateway::Deployment"
+    DependsOn: 
+      - AddToCartApiMethod
+      - UpdateCartApiMethod
+      - GetCartApiMethod
+      - DeleteCartApiMethod
+    Properties:
+      RestApiId: !Ref CartApiGateway
+      StageName: "prod"
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway endpoint URL for the Lambda function"
+    Value: !Sub "https://${CartApiGateway}.execute-api.${AWS::Region}.amazonaws.com/prod/addtocart"

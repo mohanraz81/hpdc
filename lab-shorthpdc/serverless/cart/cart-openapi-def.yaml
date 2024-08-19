@@ -1,0 +1,76 @@
+openapi: 3.0.0
+info:
+  title: E-commerce Cart API
+  version: 1.0.0
+  description: API for managing a user's shopping cart in an e-commerce system.
+
+paths:
+  /addcart:
+    post:
+      summary: Add an item to the cart
+      operationId: addToCart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItem'
+      responses:
+        '200':
+          description: Item added to the cart
+        '400':
+          description: Invalid request data
+
+  /getcart:
+    get:
+      summary: Get the user's shopping cart
+      operationId: getCart
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+
+  /updatecart:
+    put:
+      summary: Update the user's shopping cart
+      operationId: updateCart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cart'
+      responses:
+        '200':
+          description: Cart updated successfully
+        '400':
+          description: Invalid request data
+
+  /deletecart:
+    delete:
+      summary: Clear the user's shopping cart
+      operationId: deleteCart
+      responses:
+        '204':
+          description: Cart cleared successfully
+
+components:
+  schemas:
+    CartItem:
+      type: object
+      properties:
+        productId:
+          type: integer
+        quantity:
+          type: integer
+
+    Cart:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
